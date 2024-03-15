@@ -129,5 +129,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-database.sqlite
+*.sqlite
 .DS_Store
+/config
