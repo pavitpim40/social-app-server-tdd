@@ -76,13 +76,25 @@ describe('User Registration', () => {
   });
 
   it.each`
-    field         | expectedMessage
-    ${'username'} | ${'Username cannot be null'}
-    ${'email'}    | ${'Email cannot be null'}
-    ${'password'} | ${'Password cannot be null'}
-  `('returns $expectedMessage when $field is null', async ({ field, expectedMessage }) => {
+    field         | value              | expectedMessage
+    ${'username'} | ${null}            | ${'Username cannot be null'}
+    ${'username'} | ${`abc`}           | ${'Must have min 4 and max 32 characters'}
+    ${'username'} | ${`a`.repeat(33)}  | ${'Must have min 4 and max 32 characters'}
+    ${'email'}    | ${null}            | ${'Email cannot be null'}
+    ${'email'}    | ${'mail.com'}      | ${'Email is not valid'}
+    ${'email'}    | ${'user.mail.com'} | ${'Email is not valid'}
+    ${'email'}    | ${'user@mail'}     | ${'Email is not valid'}
+    ${'password'} | ${null}            | ${'Password cannot be null'}
+    ${'password'} | ${'P4ssw'}         | ${'Password must be at least 6 characters'}
+    ${'password'} | ${'alllowercase'}  | ${'Password must have 1 uppercase, 1 lowercase and 1 number'}
+    ${'password'} | ${'ALLUPPERCASE'}  | ${'Password must have 1 uppercase, 1 lowercase and 1 number'}
+    ${'password'} | ${'123456789'}     | ${'Password must have 1 uppercase, 1 lowercase and 1 number'}
+    ${'password'} | ${'lowerandUPPER'} | ${'Password must have 1 uppercase, 1 lowercase and 1 number'}
+    ${'password'} | ${'lowerand1234'}  | ${'Password must have 1 uppercase, 1 lowercase and 1 number'}
+    ${'password'} | ${'UPPER1234'}     | ${'Password must have 1 uppercase, 1 lowercase and 1 number'}
+  `('returns $expectedMessage when $field is $value', async ({ field, value, expectedMessage }) => {
     const user = { ...validUser };
-    delete user[field];
+    user[field] = value;
     const response = await postUser(user);
     expect(response.body.validationErrors[field]).toBe(expectedMessage);
   });
