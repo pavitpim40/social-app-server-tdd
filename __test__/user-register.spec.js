@@ -5,7 +5,7 @@ const sequelize = require('../src/config/database');
 
 describe('User Registration', () => {
   beforeAll(() => {
-    return sequelize.sync();
+    return sequelize.sync({ force: true });
   });
 
   beforeEach(() => {
@@ -107,5 +107,30 @@ describe('User Registration', () => {
     });
     const body = response.body;
     expect(Object.keys(body.validationErrors)).toEqual(['username', 'email']);
+  });
+
+  // duplicate email
+  it('returns E-mail in use when same email is already in use', async () => {
+    // arrange
+    await User.create({ ...validUser });
+
+    // act
+    const response = await postUser();
+
+    // assert
+    expect(response.body.validationErrors.email).toBe('Email in use');
+  });
+
+  it('returns errors for both username is null and email is in use', async () => {
+    // arrage
+    await User.create({ ...validUser });
+
+    // act
+    const response = await postUser({ username: null, email: validUser.email, password: validUser.password });
+
+    // assert
+    const body = response.body;
+    expect(body.validationErrors.email).toBe('Email in use');
+    expect(body.validationErrors.username).toBe('Username cannot be null');
   });
 });
