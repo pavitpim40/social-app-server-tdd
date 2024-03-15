@@ -21,6 +21,8 @@ describe('User Registration', () => {
   const postUser = (user = validUser) => {
     return request(app).post('/api/1.0/users').send(user);
   };
+
+  // ## SUCCESS
   it('returns 200 OK when signup request is valid', async () => {
     const response = await postUser();
     expect(response.status).toBe(200);
@@ -52,7 +54,7 @@ describe('User Registration', () => {
     expect(savedUser.password).not.toBe('P4ssword');
   });
 
-  // Error
+  // ## Error
   it('returns 400 when username is null', async () => {
     const response = await postUser({
       username: null,
@@ -73,27 +75,19 @@ describe('User Registration', () => {
     expect(body.validationErrors).not.toBeUndefined();
   });
 
-  it('returns Username cannot be null when username is null', async () => {
-    const response = await postUser({
-      username: null,
-      email: 'user1@mail.com',
-      password: 'P4ssword',
-    });
-    const body = response.body;
-    expect(body.validationErrors.username).toBe('Username cannot be null');
+  it.each`
+    field         | expectedMessage
+    ${'username'} | ${'Username cannot be null'}
+    ${'email'}    | ${'Email cannot be null'}
+    ${'password'} | ${'Password cannot be null'}
+  `('returns $expectedMessage when $field is null', async ({ field, expectedMessage }) => {
+    const user = { ...validUser };
+    delete user[field];
+    const response = await postUser(user);
+    expect(response.body.validationErrors[field]).toBe(expectedMessage);
   });
 
-  it('returns Email cannot be null when email is null', async () => {
-    const response = await postUser({
-      username: 'user1',
-      email: null,
-      password: 'P4ssword',
-    });
-    const body = response.body;
-    expect(body.validationErrors.email).toBe('Email cannot be null');
-  });
-
-  it('returns errors for both  when username and email is null', async () => {
+  it('returns errors for both  when username and email are null', async () => {
     const response = await postUser({
       username: null,
       email: null,
