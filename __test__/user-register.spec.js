@@ -3,29 +3,29 @@ const app = require('../src/app');
 const User = require('../src/user/User');
 const sequelize = require('../src/config/database');
 
+const validUser = {
+  username: 'user1',
+  email: 'user1@email.com',
+  password: 'P4ssword',
+};
+
+const postUser = (user = validUser, options = { 'Accept-Language': 'en' }) => {
+  const agent = request(app).post('/api/1.0/users');
+  if (options.language) {
+    agent.set('Accept-Language', options.language);
+  }
+  return agent.send(user);
+};
+
+beforeAll(() => {
+  return sequelize.sync({ force: true });
+});
+
+beforeEach(() => {
+  return User.destroy({ truncate: true });
+});
+
 describe('User Registration', () => {
-  beforeAll(() => {
-    return sequelize.sync({ force: true });
-  });
-
-  beforeEach(() => {
-    return User.destroy({ truncate: true });
-  });
-
-  const validUser = {
-    username: 'user1',
-    email: 'user1@email.com',
-    password: 'P4ssword',
-  };
-
-  const postUser = (user = validUser, options = { 'Accept-Language': 'en' }) => {
-    const agent = request(app).post('/api/1.0/users');
-    if (options.language) {
-      agent.set('Accept-Language', options.language);
-    }
-    return agent.send(user);
-  };
-
   // ## SUCCESS
   it('returns 200 OK when signup request is valid', async () => {
     const response = await postUser();
@@ -148,6 +148,29 @@ describe('User Registration', () => {
   });
 });
 
+describe('User Activation', () => {
+  it('creates user in inactive mode', async () => {
+    await postUser();
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(savedUser.inactive).toBe(true);
+  });
+
+  it('creates user in inactive mode even the request body contains inactive false', async () => {
+    await postUser({ ...validUser, inactive: false });
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(savedUser.inactive).toBe(true);
+  });
+
+  it('creates an activationToken for user', async () => {
+    await postUser({ ...validUser, inactive: false });
+    const users = await User.findAll();
+    const savedUser = users[0];
+    expect(savedUser.activationToken).toBeTruthy();
+  });
+});
+
 describe('Internationalization', () => {
   beforeAll(() => {
     return sequelize.sync({ force: true });
@@ -157,19 +180,6 @@ describe('Internationalization', () => {
     return User.destroy({ truncate: true });
   });
 
-  const validUser = {
-    username: 'user1',
-    email: 'user1@email.com',
-    password: 'P4ssword',
-  };
-
-  const postUser = (user = validUser, options = {}) => {
-    const agent = request(app).post('/api/1.0/users');
-    if (options.language) {
-      agent.set('Accept-Language', options.language);
-    }
-    return agent.send(user);
-  };
   const username_null = 'กรุณาระบุชื่อผู้ใช้งาน';
   const username_size = 'ชื่อผู้ใช้งานต้องมีความอยาวระหว่าง 4 - 32 ตัวอักษร';
   const email_null = 'กรุณาระบุอีเมลล์';
