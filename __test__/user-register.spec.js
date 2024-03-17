@@ -3,6 +3,7 @@ const app = require('../src/app');
 const User = require('../src/user/User');
 const sequelize = require('../src/config/database');
 const nodemailerStub = require('nodemailer-stub');
+const EmailService = require('../src/email/EmailService');
 
 const validUser = {
   username: 'user1',
@@ -185,6 +186,54 @@ describe('User Activation', () => {
     expect(lastMail.to[0]).toBe(validUser.email);
     expect(lastMail.content).toContain(savedUser.activationToken);
   });
+
+  it('returns 502 Bad Gateway when sending email fails', async () => {
+    // Arrange - Test Double
+    const mockSendAccount = jest
+      .spyOn(EmailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver Email' });
+
+    // Action
+    const response = await postUser({ ...validUser });
+
+    // Acpect
+    expect(response.status).toBe(502);
+
+    // Teardown
+    mockSendAccount.mockRestore();
+  });
+
+  it('returns Email failure message when sending email fails', async () => {
+    // Arrange - Test Double
+    const mockSendAccount = jest
+      .spyOn(EmailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver Email' });
+
+    // Action
+    const response = await postUser({ ...validUser });
+    // Teardown
+    mockSendAccount.mockRestore();
+
+    // Acpect
+    expect(response.body.message).toBe('Email Failure');
+  });
+
+  it('does not save user to database if send activation email fails', async () => {
+    // Arrange - Test Double
+    const mockSendAccount = jest
+      .spyOn(EmailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver Email' });
+
+    // Action
+    await postUser({ ...validUser });
+    mockSendAccount.mockRestore();
+    const users = await User.findAll();
+
+    // Teardown
+
+    // Acpect
+    expect(users.length).toBe(0);
+  });
 });
 
 describe('Internationalization', () => {
@@ -204,6 +253,7 @@ describe('Internationalization', () => {
   const password_size = 'รหัสผ่านต้องมีความยาวไม่ต่ำกว่า 6 ตัวอักษร';
   const password_format = 'รหัสผ่านต้องประกอบไปด้วยตัวอักษรใหญ่อย่างน้อย 1 ตัว,ตัวอักษรเล็ก 1 ตัว และตัวเลข 1 ตัว';
   const email_inuse = 'อีเมลล์นี้ถูกใช้งานแล้ว';
+  const email_failure = 'การส่งอีเมลล์ล้มเหลว';
 
   const user_created_success = 'สร้างบัญชีผู้ใช้งานสำเร็จ';
 
@@ -265,5 +315,21 @@ describe('Internationalization', () => {
     const body = response.body;
     expect(body.validationErrors.email).toBe(email_inuse);
     expect(body.validationErrors.username).toBe(username_null);
+  });
+
+  // Email
+  it(`returns ${email_failure} message when sending email fails`, async () => {
+    // Arrange - Test Double
+    const mockSendAccount = jest
+      .spyOn(EmailService, 'sendAccountActivation')
+      .mockRejectedValue({ message: 'Failed to deliver Email' });
+
+    // Action
+    const response = await postUser({ ...validUser }, { language: 'th' });
+    // Teardown
+    mockSendAccount.mockRestore();
+
+    // Acpect
+    expect(response.body.message).toBe(email_failure);
   });
 });

@@ -47,7 +47,7 @@ router.post(
       await UserService.save(req.body);
       return res.status(200).send({ message: req.t('user_created_success') });
     } catch (error) {
-      return res.status(400).send({ validationErrors: { email: 'Email in use' } });
+      return res.status(502).send({ message: req.t('email_failure') });
     }
   }
 );
