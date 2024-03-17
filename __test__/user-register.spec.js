@@ -2,6 +2,7 @@ const request = require('supertest');
 const app = require('../src/app');
 const User = require('../src/user/User');
 const sequelize = require('../src/config/database');
+const nodemailerStub = require('nodemailer-stub');
 
 const validUser = {
   username: 'user1',
@@ -168,6 +169,21 @@ describe('User Activation', () => {
     const users = await User.findAll();
     const savedUser = users[0];
     expect(savedUser.activationToken).toBeTruthy();
+  });
+
+  // Email and Stub
+  it('sends an Account activation email with activationToken', async () => {
+    // Arranage
+
+    // Action
+    await postUser({ ...validUser });
+    const lastMail = nodemailerStub.interactsWithMail.lastMail();
+    const users = await User.findAll();
+    const savedUser = users[0];
+
+    // Aspect
+    expect(lastMail.to[0]).toBe(validUser.email);
+    expect(lastMail.content).toContain(savedUser.activationToken);
   });
 });
 

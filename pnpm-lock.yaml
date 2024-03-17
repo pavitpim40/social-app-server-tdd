@@ -26,6 +26,9 @@ dependencies:
   i18next-http-middleware:
     specifier: ^3.5.0
     version: 3.5.0
+  nodemailer:
+    specifier: ^6.9.12
+    version: 6.9.12
   sequelize:
     specifier: ^6.37.1
     version: 6.37.1(sqlite3@5.1.7)
@@ -49,6 +52,9 @@ devDependencies:
   jest:
     specifier: ^29.7.0
     version: 29.7.0
+  nodemailer-stub:
+    specifier: ^1.2.2
+    version: 1.2.2
   nodemon:
     specifier: ^3.1.0
     version: 3.1.0
@@ -3264,6 +3270,15 @@ packages:
   /node-releases@2.0.14:
     resolution: {integrity: sha512-y10wOWt8yZpqXmOgRo77WaHEmhYQYGNA6y421PKsKYWEK8aW+cqAphborZDhqfyKrbZEN92CN1X2KbafY2s7Yw==}
     dev: true
+
+  /nodemailer-stub@1.2.2:
+    resolution: {integrity: sha512-K4BKUExW3gR+94PVH2fWanH3YyPGPL7NTgqQMfcNi+WC13B44AIuk0HTBu7oS/WV2Rn1RSEAgxB9ZhYB8b+0dw==}
+    dev: true
+
+  /nodemailer@6.9.12:
+    resolution: {integrity: sha512-pnLo7g37Br3jXbF0bl5DekBJihm2q+3bB3l2o/B060sWmb5l+VqeScAQCBqaQ+5ezRZFzW5SciZNGdRDEbq89w==}
+    engines: {node: '>=6.0.0'}
+    dev: false
 
   /nodemon@3.1.0:
     resolution: {integrity: sha512-xqlktYlDMCepBJd43ZQhjWwMw2obW/JRvkrLxq5RCNcuDDX1DbcPT+qT1IlIIdf+DhnWs90JpTMe+Y5KxOchvA==}
